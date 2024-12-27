@@ -4,15 +4,15 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'aymane242/mon-projet-php' // Nom de l'image Docker
         DOCKERHUB_CREDENTIALS = 'dockerhub-credentials' // Credentials DockerHub (à configurer dans Jenkins)
-        REMOTE_SERVER = 'adresse_du_serveur_distant' // Adresse du serveur distant
-        SSH_KEY = '/chemin/vers/ta_cle_ssh' // Clé SSH pour le serveur distant
+        REMOTE_SERVER = '172.17.0.2' // Adresse du serveur distant
+        SSH_KEY = 'C:\Users\carrefour\.ssh' // Clé SSH pour le serveur distant
     }
 
     stages {
         stage('Clone') {
             steps {
                 // Cloner le projet depuis Git
-                git 'https://github.com/ton_utilisateur/mon-projet-php.git'
+                git branch: 'main', url: 'https://github.com/aymane242662/jenkins-project'
             }
         }
 
