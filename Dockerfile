@@ -1,18 +1,55 @@
-# Étape 1 : Image de base
-FROM php:8.2-apache
+# Use an official PHP runtime as a parent image
+FROM php:8.3-fpm
 
-# Étape 2 : Installation des dépendances PHP
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    libzip-dev \
+    git \
     unzip \
-    && docker-php-ext-install zip pdo pdo_mysql
+    libicu-dev \
+    libzip-dev \
+    zlib1g-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    curl \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install intl pdo pdo_mysql zip exif gd
 
-# Étape 3 : Copier les fichiers de l'application
-COPY . /var/www/html/
+# Install Node.js and npm
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
 
-# Étape 4 : Configurer les permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
+# Verify Node.js and npm installation
+RUN node -v
+RUN npm -v
 
-# Étape 5 : Configurer Apache
-EXPOSE 80
+# Install Composer
+COPY --from=composer:2.6.5 /usr/bin/composer /usr/local/bin/composer
+
+# Verify Composer installation
+RUN composer --version
+
+# Install Symfony CLI
+RUN curl -sS https://get.symfony.com/cli/installer | bash
+RUN mv /root/.symfony*/bin/symfony /usr/local/bin/symfony
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy existing application directory contents
+COPY . /var/www/html
+
+# Debugging steps
+RUN which composer
+RUN composer --version
+RUN ls -l /usr/local/bin
+RUN ls -l /var/www/html
+
+# Install project dependencies
+RUN composer install
+
+# Expose port 9000 and start php-fpm server
+EXPOSE 9000
+CMD ["php-fpm"]
